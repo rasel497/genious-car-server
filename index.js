@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const res = require('express/lib/response');
 require('dotenv').config();
 
@@ -17,6 +17,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 async function run() {
     try {
+        // from >Find Multiple Document [this section for show all data client side UI]
         const servicCollection = client.db('geniousCar').collection('services');
 
         app.get('/services', async (req, res) => {
@@ -25,6 +26,15 @@ async function run() {
             const services = await cursor.toArray();
             res.send(services);
         })
+
+        // from >Find Document [this section for specefic data load to show client side UI click bttn show specefic checkout data]
+        app.get('/services/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const service = await servicCollection.findOne(query);
+            res.send(service);
+        });
+
     }
     finally {
 
