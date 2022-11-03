@@ -3,6 +3,7 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const res = require('express/lib/response');
 require('dotenv').config();
 
 // midleware
@@ -17,13 +18,20 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run() {
     try {
         const servicCollection = client.db('geniousCar').collection('services');
+
+        app.get('/services', async (req, res) => {
+            const query = {};
+            const cursor = servicCollection.find(query);
+            const services = await cursor.toArray();
+            res.send(services);
+        })
     }
     finally {
 
     }
 }
-
 run().catch(err => console.error(err));
+
 
 // initial setup
 app.get('/', (req, res) => {
