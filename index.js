@@ -4,6 +4,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const res = require('express/lib/response');
+const query = require('express/lib/middleware/query');
 require('dotenv').config();
 
 // midleware
@@ -36,6 +37,19 @@ async function run() {
             res.send(service);
         });
 
+        // 3.1.Get orders [protita email user koyta order dise ta ber korer jonno Line:41-51]
+        app.get('/orders', async (req, res) => {
+            // console.log(req.query);
+            let query = {};
+            if (req.query.email) {
+                query = {
+                    email: req.query.email
+                }
+            }
+            const cursor = orderCollection.find(query);
+            const orders = await cursor.toArray();
+            res.send(orders);
+        });
         // 03.order api >Insert Operation [using post for create data]
         app.post('/orders', async (req, res) => {
             const order = req.body;
