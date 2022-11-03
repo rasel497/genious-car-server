@@ -13,14 +13,19 @@ app.use(express.json());
 // from Mongobd  database
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.mpr3cem.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-client.connect(err => {
-    const collection = client.db("test").collection("devices");
-    // perform actions on the collection object
-    client.close();
-});
 
+async function run() {
+    try {
+        const servicCollection = client.db('geniousCar').collection('services');
+    }
+    finally {
 
+    }
+}
 
+run().catch(err => console.error(err));
+
+// initial setup
 app.get('/', (req, res) => {
     res.send('genious car server is running');
 })
