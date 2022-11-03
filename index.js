@@ -17,8 +17,9 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 async function run() {
     try {
-        // from >Find Multiple Document [this section for show all data client side UI]
+        // 01.from >Find Multiple Document [this section for show all data client side UI]
         const servicCollection = client.db('geniousCar').collection('services');
+        const orderCollection = client.db('geniousCar').collection('order');
 
         app.get('/services', async (req, res) => {
             const query = {};
@@ -27,13 +28,22 @@ async function run() {
             res.send(services);
         })
 
-        // from >Find Document [this section for specefic data load to show client side UI click bttn show specefic checkout data]
+        // 02.from >Find Document [this section for specefic data load to show client side UI click bttn show specefic checkout data]
         app.get('/services/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const service = await servicCollection.findOne(query);
             res.send(service);
         });
+
+        // 03.order api >Insert Operation [using post for create data]
+        app.post('/orders', async (req, res) => {
+            const order = req.body;
+            const result = await orderCollection.insertOne(order);
+            res.send(result);
+        });
+
+
 
     }
     finally {
