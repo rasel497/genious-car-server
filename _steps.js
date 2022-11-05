@@ -1,15 +1,6 @@
-function verifyJWT(req, res, next) {
-    // console.log(req.headers.authorization);
-    const authHeader = req.headers.authoriztion;
-    if (!authHeader) {
-        res.status(401).send({ message: 'unauthorized access' })
-    }
-    const token = authHeader.split(' ')[1];
-    jwt.verify(token, ACCESS_TOKEN_SECRET, function (err, decoded) {
-        if (err) {
-            res.status(401).send({ message: 'unauthorized access' })
-        }
-        req.decoded = decoded;
-        next();
-    })
-}
+/*
+1. root project create >vercel.json file
+2.  add "build": "node index.js" in >package.json file
+3. cmd>vercel
+4. 
+*/
