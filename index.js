@@ -1,12 +1,11 @@
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
+
 const app = express();
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const res = require('express/lib/response');
-const query = require('express/lib/middleware/query');
-require('dotenv').config();
 
 // midleware
 app.use(cors());
@@ -23,6 +22,15 @@ async function run() {
         const servicCollection = client.db('geniousCar').collection('services');
         const orderCollection = client.db('geniousCar').collection('order');
 
+        // for using token whwn user login or sign up
+        app.post('/jwt', (req, res) => {
+            const user = req.body;
+            // console.log(user);
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+            res.send({ token })
+        })
+
+        // for load all db to load client UI
         app.get('/services', async (req, res) => {
             const query = {};
             const cursor = servicCollection.find(query);
