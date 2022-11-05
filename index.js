@@ -16,6 +16,23 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.mpr3cem.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+//  verify token 
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send({ message: 'unauthorized acess' })
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+        if (err) {
+            return res.status(401).send({ message: 'unauthorised access' });
+        }
+        req.decoded = decoded;
+        next();
+    })
+
+}
+
 async function run() {
     try {
         // 01.from >Find Multiple Document [this section for show all data client side UI]
@@ -26,9 +43,9 @@ async function run() {
         app.post('/jwt', (req, res) => {
             const user = req.body;
             // console.log(user);
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '5' })
             res.send({ token })
-        })
+        });
 
         // for load all db to load client UI
         app.get('/services', async (req, res) => {
@@ -36,7 +53,7 @@ async function run() {
             const cursor = servicCollection.find(query);
             const services = await cursor.toArray();
             res.send(services);
-        })
+        });
 
         // 02.from >Find Document [this section for specefic data load to show client side UI click bttn show specefic checkout data]
         app.get('/services/:id', async (req, res) => {
@@ -46,9 +63,15 @@ async function run() {
             res.send(service);
         });
 
-        // 3.1.Get orders [protita email user koyta order dise ta ber korer jonno Line:41-51]
-        app.get('/orders', async (req, res) => {
-            // console.log(req.query);
+        // 3.1.Get orders aapi [protita email user koyta order dise ta ber korer jonno Line:41-51]
+        app.get('/orders', verifyJWT, async (req, res) => {
+            // console.log(req.headers.authorization);
+            const decoded = req.decoded;
+            console.log('inside orders api', decoded);
+            if (decoded.email !== req.query.email) {
+                res.status(403).send({ message: 'unauthorized access' })
+            }
+
             let query = {};
             if (req.query.email) {
                 query = {
@@ -78,7 +101,7 @@ async function run() {
             }
             const result = await orderCollection.updateOne(query, updateDoc);
             res.send(result);
-        })
+        });
 
         // Delete orders by id >Delete a Document
         app.delete('/orders/:id', async (req, res) => {
@@ -86,8 +109,7 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const result = await orderCollection.deleteOne(query);
             res.send(result);
-        })
-
+        });
     }
     finally {
 
@@ -99,8 +121,8 @@ run().catch(err => console.error(err));
 // initial setup
 app.get('/', (req, res) => {
     res.send('genious car server is running');
-})
+});
 
 app.listen(port, () => {
     console.log(`Genious car server is running port: ${port}`);
-})
+});
