@@ -16,7 +16,7 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.mpr3cem.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
-//  verify token 
+//  verify token generate
 function verifyJWT(req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -25,7 +25,7 @@ function verifyJWT(req, res, next) {
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
         if (err) {
-            return res.status(401).send({ message: 'unauthorised access' });
+            return res.status(403).send({ message: 'Forbidden access' });
         }
         req.decoded = decoded;
         next();
@@ -43,7 +43,7 @@ async function run() {
         app.post('/jwt', (req, res) => {
             const user = req.body;
             // console.log(user);
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '5' })
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' })
             res.send({ token })
         });
 
@@ -65,9 +65,8 @@ async function run() {
 
         // 3.1.Get orders aapi [protita email user koyta order dise ta ber korer jonno Line:41-51]
         app.get('/orders', verifyJWT, async (req, res) => {
-            // console.log(req.headers.authorization);
             const decoded = req.decoded;
-            console.log('inside orders api', decoded);
+            // console.log('inside orders api', decoded);
             if (decoded.email !== req.query.email) {
                 res.status(403).send({ message: 'unauthorized access' })
             }
@@ -82,15 +81,15 @@ async function run() {
             const orders = await cursor.toArray();
             res.send(orders);
         });
-        // 03.order api >Insert Operation [using post for create data]
-        app.post('/orders', async (req, res) => {
+        // 03.create order api >Insert Operation [using post for create data]
+        app.post('/orders', verifyJWT, async (req, res) => {
             const order = req.body;
             const result = await orderCollection.insertOne(order);
             res.send(result);
         });
 
-        // for >Update a Document
-        app.patch('/orders/:id', async (req, res) => {
+        // for >Update a Document [add verifyJWT mane token na thke update korte dibo na]
+        app.patch('/orders/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const status = req.body.status;
             const query = { _id: ObjectId(id) }
@@ -103,8 +102,8 @@ async function run() {
             res.send(result);
         });
 
-        // Delete orders by id >Delete a Document
-        app.delete('/orders/:id', async (req, res) => {
+        // Delete orders by id >Delete a Document [add verifyJWT mane token na thke delete korte dibo na]
+        app.delete('/orders/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const result = await orderCollection.deleteOne(query);
