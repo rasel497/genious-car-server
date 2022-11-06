@@ -47,7 +47,7 @@ async function run() {
             res.send({ token })
         });
 
-        // for load all db to load client UI
+        // Read for load all db to load client UI
         app.get('/services', async (req, res) => {
             const query = {};
             const cursor = servicCollection.find(query);
