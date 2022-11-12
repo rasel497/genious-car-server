@@ -50,7 +50,8 @@ async function run() {
         // Read for load all db to load client UI
         app.get('/services', async (req, res) => {
             const query = {};
-            const cursor = servicCollection.find(query);
+            const order = req.query.order === 'asc' ? 1 : -1;
+            const cursor = servicCollection.find(query).sort({ price: order });
             const services = await cursor.toArray();
             res.send(services);
         });
